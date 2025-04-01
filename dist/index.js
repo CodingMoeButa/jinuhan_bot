@@ -15,9 +15,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const ini_1 = __importDefault(require("ini"));
 const grammy_1 = require("grammy");
+const socks_proxy_agent_1 = require("socks-proxy-agent");
 const CONFIG = ini_1.default.parse(fs_1.default.readFileSync('config.ini', 'utf8'));
 const QUOTES = JSON.parse(fs_1.default.readFileSync('quotes.json', 'utf8'));
-var bot = new grammy_1.Bot(CONFIG['BOT_TOKEN']);
+var botConfig = {};
+if (CONFIG['SOCKS5_PROXY']['HOST']) {
+    // 使用对象字面量直接构造配置
+    botConfig = {
+        client: {
+            baseFetchConfig: {
+                agent: new socks_proxy_agent_1.SocksProxyAgent(`socks5://${CONFIG['SOCKS5_PROXY']['HOST']}:${CONFIG['SOCKS5_PROXY']['PORT']}`),
+                compress: true
+            }
+        }
+    };
+}
+var bot = new grammy_1.Bot(CONFIG['BOT_TOKEN'], botConfig);
 bot.command('start', function (ctx) {
     return __awaiter(this, void 0, void 0, function* () {
         let quote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
